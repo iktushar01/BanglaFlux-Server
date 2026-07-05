@@ -1,6 +1,7 @@
 import app from "./app";
 import { envVars } from "./config/env";
 import { seedSuperAdmin } from "./app/utils/seed";
+import { seedSamplePlaylist } from "./app/utils/seedSamplePlaylist";
 
 // Load .env only in development
 if (process.env.NODE_ENV !== "production") {
@@ -37,6 +38,13 @@ const bootstrap = async () => {
         error
       );
     });
+
+    // Seed starter channels when DB is empty (dev convenience)
+    if (process.env.SEED_SAMPLE_PLAYLIST !== "false") {
+      seedSamplePlaylist().catch((error) => {
+        console.error("Sample playlist seed skipped due to error:", error);
+      });
+    }
   } catch (error: any) {
     if (error.code === "EADDRINUSE") {
       console.error(

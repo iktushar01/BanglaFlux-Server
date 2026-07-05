@@ -14,3 +14,9 @@ export type UserStatus = (typeof UserStatus)[keyof typeof UserStatus];
 export const Gender = prismaModule.Gender;
 export type Gender = (typeof Gender)[keyof typeof Gender];
 
+export const ChannelCategory = prismaModule.ChannelCategory;
+export type ChannelCategory = (typeof ChannelCategory)[keyof typeof ChannelCategory];
+
+export const PlaylistSourceType = prismaModule.PlaylistSourceType;
+export type PlaylistSourceType = (typeof PlaylistSourceType)[keyof typeof PlaylistSourceType];
+

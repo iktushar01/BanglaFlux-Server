@@ -20,6 +20,7 @@ model User {
   admin               Admin?
   client              Client?
   sessions            Session[]
+  favorites           Channel[]  @relation("UserFavorites")
 
   @@map("user")
 }
