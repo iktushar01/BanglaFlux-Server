@@ -1,0 +1,45 @@
+enum ChannelCategory {
+  SPORTS
+  MOVIES
+  NEWS
+  ENTERTAINMENT
+  MUSIC
+  CARTOON
+  BANGLADESH
+  DOCUMENTARY
+  SERIES
+  OTHER
+}
+
+enum PlaylistSourceType {
+  UPLOAD
+  URL
+}
+
+model Playlist {
+  id         String             @id @default(cuid())
+  title      String
+  sourceType PlaylistSourceType
+  rawContent String             @db.Text
+  createdAt  DateTime           @default(now())
+  channels   Channel[]
+
+  @@map("playlist")
+}
+
+model Channel {
+  id          String          @id @default(cuid())
+  name        String
+  url         String          @unique
+  logo        String?
+  category    ChannelCategory @default(OTHER)
+  isActive    Boolean         @default(true)
+  createdAt   DateTime        @default(now())
+  playlistId  String?
+  playlist    Playlist?       @relation(fields: [playlistId], references: [id], onDelete: SetNull)
+  favoritedBy User[]          @relation("UserFavorites")
+
+  @@index([category])
+  @@index([isActive])
+  @@map("channel")
+}
