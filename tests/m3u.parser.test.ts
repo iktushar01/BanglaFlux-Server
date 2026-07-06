@@ -34,6 +34,28 @@ http://example.com/stream.m3u8
         expect(mapGroupTitleToCategory()).toBe(ChannelCategory.OTHER);
     });
 
+    it("maps LiveTV group titles to categories", () => {
+        expect(mapGroupTitleToCategory("BANGLA")).toBe(ChannelCategory.BANGLADESH);
+        expect(mapGroupTitleToCategory("English News")).toBe(ChannelCategory.NEWS);
+        expect(mapGroupTitleToCategory("Movies - Bangla")).toBe(ChannelCategory.MOVIES);
+        expect(mapGroupTitleToCategory("Kids")).toBe(ChannelCategory.CARTOON);
+        expect(mapGroupTitleToCategory("Football World Cup 2026")).toBe(ChannelCategory.SPORTS);
+    });
+
+    it("parses LiveTV-style EXTINF lines", () => {
+        const content = `#EXTM3U
+#EXTINF:-1 tvg-logo="https://example.com/logo.png" group-title="BANGLA",BTV
+http://198.195.239.50:8095/btv/tracks-v1a1/mono.m3u8
+#EXTINF:-1 tvg-logo="https://example.com/logo.png" group-title="English News",BBC News
+http://example.com/bbc.m3u8
+`;
+
+        const { channels } = parseM3U(content);
+        expect(channels).toHaveLength(2);
+        expect(channels[0].category).toBe(ChannelCategory.BANGLADESH);
+        expect(channels[1].category).toBe(ChannelCategory.NEWS);
+    });
+
     it("validates stream URLs", () => {
         expect(isValidStreamUrl("http://example.com/a.m3u8")).toBe(true);
         expect(isValidStreamUrl("not-a-url")).toBe(false);
@@ -45,14 +67,12 @@ http://example.com/stream.m3u8
         expect(extractStreamUrl(line)).toBe("https://example.com/live/stream.m3u8?token=abc");
     });
 
-    it("parses full playlist file with expected channel count", () => {
-        const fs = require("node:fs");
-        const path = require("node:path");
-        const file = path.resolve(__dirname, "../scripts/banglaflux.m3u");
-        if (!fs.existsSync(file)) return;
+    it("parses a large LiveTV-style playlist sample", () => {
+        const content = `#EXTM3U
+${Array.from({ length: 150 }, (_, i) => `#EXTINF:-1 group-title="BANGLA",Channel ${i}\nhttp://example.com/stream-${i}.m3u8`).join("\n")}
+`;
 
-        const content = fs.readFileSync(file, "utf-8");
         const { channels } = parseM3U(content);
-        expect(channels.length).toBeGreaterThan(140);
+        expect(channels.length).toBe(150);
     });
 });

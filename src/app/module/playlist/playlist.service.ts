@@ -1,8 +1,8 @@
-import axios from "axios";
 import { StatusCodes } from "http-status-codes";
 import AppError from "../../errorHelpers/AppError";
 import { prisma } from "../../lib/prisma";
-import { ChannelCategory, PlaylistSourceType } from "../../lib/prisma-exports";
+import { PlaylistSourceType } from "../../lib/prisma-exports";
+import { fetchM3UContent } from "./playlist-fetch";
 import { parseM3U } from "./m3u.parser";
 
 export interface ImportPlaylistPayload {
@@ -88,22 +88,7 @@ const importFromUpload = async (title: string, fileBuffer: Buffer): Promise<Impo
 };
 
 const importFromUrl = async (title: string, url: string): Promise<ImportPlaylistResult> => {
-    let response;
-    try {
-        response = await axios.get<string>(url, {
-            timeout: 30000,
-            responseType: "text",
-            headers: { Accept: "application/vnd.apple.mpegurl, text/plain, */*" },
-            maxContentLength: 5 * 1024 * 1024,
-        });
-    } catch {
-        throw new AppError(StatusCodes.BAD_REQUEST, "Failed to fetch M3U from URL");
-    }
-
-    const rawContent = response.data;
-    if (!rawContent || typeof rawContent !== "string") {
-        throw new AppError(StatusCodes.BAD_REQUEST, "Empty or invalid response from URL");
-    }
+    const rawContent = await fetchM3UContent(url);
 
     return importFromContent({
         title,

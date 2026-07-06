@@ -17,21 +17,103 @@ const TVG_LOGO_REGEX = /tvg-logo="([^"]*)"/i;
 
 const CATEGORY_MAP: Record<string, ChannelCategory> = {
     sports: ChannelCategory.SPORTS,
+    "live sports": ChannelCategory.SPORTS,
+    world_cup: ChannelCategory.SPORTS,
+    "football world cup 2026": ChannelCategory.SPORTS,
+    "fifa world cup 2026": ChannelCategory.SPORTS,
+    fancode: ChannelCategory.SPORTS,
+    toffee: ChannelCategory.SPORTS,
+    football: ChannelCategory.SPORTS,
     movies: ChannelCategory.MOVIES,
+    "movies - bangla": ChannelCategory.MOVIES,
+    "movies - english": ChannelCategory.MOVIES,
+    "hindi movies": ChannelCategory.MOVIES,
+    "english movie": ChannelCategory.MOVIES,
+    "english movies": ChannelCategory.MOVIES,
+    "bangla movies": ChannelCategory.MOVIES,
+    "kolkata bangla movies": ChannelCategory.MOVIES,
+    "hindi dabbing movies": ChannelCategory.MOVIES,
+    goldmines: ChannelCategory.MOVIES,
     news: ChannelCategory.NEWS,
+    "english news": ChannelCategory.NEWS,
+    "international news": ChannelCategory.NEWS,
+    "bangla news": ChannelCategory.NEWS,
+    "news internasional": ChannelCategory.NEWS,
+    "news internasional tv": ChannelCategory.NEWS,
+    "indian bangla news": ChannelCategory.NEWS,
+    "bangladeshi news 🇧🇩": ChannelCategory.NEWS,
     entertainment: ChannelCategory.ENTERTAINMENT,
+    "indian-bangla": ChannelCategory.ENTERTAINMENT,
+    "indian bangla": ChannelCategory.ENTERTAINMENT,
+    "kolkata bangla": ChannelCategory.ENTERTAINMENT,
+    "sm all tv": ChannelCategory.ENTERTAINMENT,
+    india: ChannelCategory.ENTERTAINMENT,
+    indian: ChannelCategory.ENTERTAINMENT,
+    hindi: ChannelCategory.ENTERTAINMENT,
+    pakistan: ChannelCategory.ENTERTAINMENT,
+    "akash go": ChannelCategory.ENTERTAINMENT,
     music: ChannelCategory.MUSIC,
+    "bangla music": ChannelCategory.MUSIC,
+    "hindi music": ChannelCategory.MUSIC,
+    "kolkata bangla music": ChannelCategory.MUSIC,
+    "fm-radio": ChannelCategory.MUSIC,
+    "fm redio": ChannelCategory.MUSIC,
+    "radio fm": ChannelCategory.MUSIC,
     cartoon: ChannelCategory.CARTOON,
+    kids: ChannelCategory.CARTOON,
+    "cartoon drama": ChannelCategory.CARTOON,
+    "cartoons | 24/7": ChannelCategory.CARTOON,
     bangladesh: ChannelCategory.BANGLADESH,
+    bangla: ChannelCategory.BANGLADESH,
+    "bangladeshi 🇧🇩": ChannelCategory.BANGLADESH,
+    "bangladeshi iptv 🇧🇩": ChannelCategory.BANGLADESH,
+    "bd.bang.ch ( bdix )": ChannelCategory.BANGLADESH,
     documentary: ChannelCategory.DOCUMENTARY,
     series: ChannelCategory.SERIES,
+};
+
+const mapGroupTitleByKeywords = (normalized: string): ChannelCategory | null => {
+    if (/sport|football|world.?cup|fifa|fancode|toffee|cricket/.test(normalized)) {
+        return ChannelCategory.SPORTS;
+    }
+    if (/movie|goldmines/.test(normalized)) {
+        return ChannelCategory.MOVIES;
+    }
+    if (/news|internasional/.test(normalized)) {
+        return ChannelCategory.NEWS;
+    }
+    if (/cartoon|kids/.test(normalized)) {
+        return ChannelCategory.CARTOON;
+    }
+    if (/music|\bfm\b|radio/.test(normalized)) {
+        return ChannelCategory.MUSIC;
+    }
+    if (/documentary/.test(normalized)) {
+        return ChannelCategory.DOCUMENTARY;
+    }
+    if (/series/.test(normalized) && !/cartoon/.test(normalized)) {
+        return ChannelCategory.SERIES;
+    }
+    if (/bangla|bangladesh|bdix/.test(normalized) && !/news|movie|music/.test(normalized)) {
+        return ChannelCategory.BANGLADESH;
+    }
+    if (/entertain|indian|hindi|kolkata|india|pakistan/.test(normalized)) {
+        return ChannelCategory.ENTERTAINMENT;
+    }
+    return null;
 };
 
 export const mapGroupTitleToCategory = (groupTitle?: string): ChannelCategory => {
     if (!groupTitle?.trim()) {
         return ChannelCategory.OTHER;
     }
-    return CATEGORY_MAP[groupTitle.trim().toLowerCase()] ?? ChannelCategory.OTHER;
+
+    const normalized = groupTitle.trim().toLowerCase();
+    return (
+        CATEGORY_MAP[normalized] ??
+        mapGroupTitleByKeywords(normalized) ??
+        ChannelCategory.OTHER
+    );
 };
 
 export const isValidStreamUrl = (url: string): boolean => {
