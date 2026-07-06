@@ -335,14 +335,39 @@ const getNewTokens = async (oldRefreshToken: string, sessionToken?: string) => {
 
     const { decoded } = verified;
 
+    const user = await prisma.user.findUnique({
+        where: { id: decoded.userId },
+        select: {
+            id: true,
+            role: true,
+            name: true,
+            email: true,
+            status: true,
+            isDeleted: true,
+            emailVerified: true,
+        },
+    });
+
+    if (
+        !user ||
+        user.isDeleted ||
+        user.status === UserStatus.SUSPENDED ||
+        user.status === UserStatus.DELETED
+    ) {
+        throw new AppError(
+            StatusCodes.UNAUTHORIZED,
+            "Unauthorized access! User no longer exists.",
+        );
+    }
+
     const { accessToken, refreshToken: newRefreshToken } = buildTokenPair({
-        id: decoded.userId,
-        role: decoded.role,
-        name: decoded.name,
-        email: decoded.email,
-        status: decoded.status,
-        isDeleted: decoded.isDeleted,
-        emailVerified: decoded.emailVerified,
+        id: user.id,
+        role: user.role,
+        name: user.name,
+        email: user.email,
+        status: user.status,
+        isDeleted: user.isDeleted,
+        emailVerified: user.emailVerified,
     });
 
     // The DB session token is better-auth's own token — we intentionally do NOT
