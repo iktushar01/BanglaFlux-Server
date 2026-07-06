@@ -14,7 +14,7 @@ export const fetchM3UContent = async (url: string): Promise<string> => {
             timeout: 60000,
             responseType: "text",
             headers: { Accept: "application/vnd.apple.mpegurl, text/plain, */*" },
-            maxContentLength: 10 * 1024 * 1024,
+            maxContentLength: 15 * 1024 * 1024,
         });
     } catch {
         throw new AppError(StatusCodes.BAD_REQUEST, "Failed to fetch M3U from URL");

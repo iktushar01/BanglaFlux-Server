@@ -6,6 +6,7 @@ import {
     DEFAULT_PLAYLIST_TITLE,
     fetchM3UContent,
 } from "../src/app/module/playlist/playlist-fetch";
+import { bulkImportChannels } from "../src/app/module/playlist/playlist-import";
 import { parseM3U } from "../src/app/module/playlist/m3u.parser";
 
 async function main() {
@@ -28,30 +29,9 @@ async function main() {
         },
     });
 
-    let imported = 0;
-    let skipped = 0;
-
-    for (const channel of channels) {
-        try {
-            await prisma.channel.create({
-                data: {
-                    name: channel.name,
-                    url: channel.url,
-                    logo: channel.logo ?? null,
-                    category: channel.category,
-                    playlistId: playlist.id,
-                },
-            });
-            imported++;
-        } catch (error: unknown) {
-            const prismaError = error as { code?: string };
-            if (prismaError.code === "P2002") skipped++;
-            else throw error;
-        }
-    }
-
+    const imported = await bulkImportChannels(playlist.id, channels);
     const total = await prisma.channel.count();
-    console.log(`Import done: ${imported} new, ${skipped} duplicates skipped, ${total} total in DB`);
+    console.log(`Import done: ${imported} imported, ${total} total in DB`);
 }
 
 main()

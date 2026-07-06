@@ -5,6 +5,7 @@ import {
     DEFAULT_PLAYLIST_TITLE,
     fetchM3UContent,
 } from "../module/playlist/playlist-fetch";
+import { bulkImportChannels } from "../module/playlist/playlist-import";
 import { parseM3U } from "../module/playlist/m3u.parser";
 
 const getPlaylistUrl = () => process.env.PLAYLIST_M3U_URL?.trim() || DEFAULT_PLAYLIST_M3U_URL;
@@ -67,31 +68,10 @@ export const seedSamplePlaylist = async () => {
             },
         });
 
-        let imported = 0;
-        let skipped = 0;
-
-        for (const channel of channels) {
-            try {
-                await prisma.channel.create({
-                    data: {
-                        name: channel.name,
-                        url: channel.url,
-                        logo: channel.logo ?? null,
-                        category: channel.category,
-                        playlistId: playlist.id,
-                    },
-                });
-                imported++;
-            } catch (error: unknown) {
-                const prismaError = error as { code?: string };
-                if (prismaError.code === "P2002") skipped++;
-                else throw error;
-            }
-        }
-
+        const imported = await bulkImportChannels(playlist.id, channels);
         const total = await prisma.channel.count();
         console.log(
-            `LiveTV playlist sync: ${imported} imported, ${skipped} skipped, ${total} total channels.`,
+            `LiveTV playlist sync: ${imported} imported, ${total} total channels.`,
         );
     } catch (error) {
         console.error("Error seeding LiveTV playlist:", error);
